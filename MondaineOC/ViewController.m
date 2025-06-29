@@ -6,13 +6,19 @@
 //
 
 #import "ViewController.h"
+#import "ClockView.h"
 
 @implementation ViewController
 
 - (void)viewDidLoad {
     [super viewDidLoad];
 
-    // Do any additional setup after loading the view.
+    ClockView *clockView = [[ClockView alloc] initWithFrame:self.view.bounds];
+    
+    clockView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+    
+    [self.view addSubview:clockView];
+
 }
 
 
