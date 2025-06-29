@@ -113,7 +113,7 @@
     }
     
     CALayer *layer = [CALayer layer];
-    layer.contents = image;
+    //layer.contents = image;
     layer.contentsGravity = kCAGravityResizeAspect;
     
     // SwiftUI's .shadow
@@ -125,35 +125,6 @@
     return layer;
 }
 
-/**
- * updates the image content of all layers based on current system theme
- * 通过先设为 nil 来强制刷新图层缓存。
- */
-- (void)updateLayerImages {
-    // 背景
-    self.backgroundLayer.contents = nil;
-    self.backgroundLayer.contents = [NSImage imageNamed:@"BG"];
-    
-    // 表盘
-    self.clockFaceLayer.contents = nil;
-    self.clockFaceLayer.contents = [NSImage imageNamed:@"ClockFace"];
-    
-    // 刻度
-    self.indicatorLayer.contents = nil;
-    self.indicatorLayer.contents = [NSImage imageNamed:@"ClockIndicator"];
-    
-    // 时针
-    self.hourHandLayer.contents = nil;
-    self.hourHandLayer.contents = [NSImage imageNamed:@"HOURBAR"];
-    
-    // 分针
-    self.minuteHandLayer.contents = nil;
-    self.minuteHandLayer.contents = [NSImage imageNamed:@"MINBAR"];
-    
-    // 秒针
-    self.secondHandLayer.contents = nil;
-    self.secondHandLayer.contents = [NSImage imageNamed:@"REDINDICATOR"];
-}
 
 
 #pragma mark - layout & drawing
@@ -163,10 +134,11 @@
     [self layoutLayers];
     
     if (!self.hasPerformedInitialLayout) {
-            [self updateClockHands:nil];
+        [self updateLayerImages];
+        [self updateClockHands:nil];
 
-            self.hasPerformedInitialLayout = YES;
-        }
+        self.hasPerformedInitialLayout = YES;
+    }
 }
 
 - (void)layoutLayers {
@@ -205,16 +177,30 @@
 }
 
 
-/**
- * 当视图的有效外观（如深/浅色模式）发生改变时，系统会自动调用此方法。
- */
 - (void)viewDidChangeEffectiveAppearance {
     [super viewDidChangeEffectiveAppearance];
     
-    // 手动更新所有图层的图像，以匹配新的外观
     [self updateLayerImages];
 }
 
+
+- (void)updateLayerImages {
+    [self.effectiveAppearance performAsCurrentDrawingAppearance:^{
+        CGImageRef (^cgImageForLayer)(NSString *, CALayer *) = ^CGImageRef(NSString *imageName, CALayer *layer) {
+            NSImage *image = [NSImage imageNamed:imageName];
+            if (!image) return NULL;
+            CGRect imageRect = layer.bounds;
+            return [image CGImageForProposedRect:&imageRect context:nil hints:nil];
+        };
+        
+        self.backgroundLayer.contents = (__bridge id)cgImageForLayer(@"BG", self.backgroundLayer);
+        self.clockFaceLayer.contents = (__bridge id)cgImageForLayer(@"ClockFace", self.clockFaceLayer);
+        self.indicatorLayer.contents = (__bridge id)cgImageForLayer(@"ClockIndicator", self.indicatorLayer);
+        self.hourHandLayer.contents = (__bridge id)cgImageForLayer(@"HOURBAR", self.hourHandLayer);
+        self.minuteHandLayer.contents = (__bridge id)cgImageForLayer(@"MINBAR", self.minuteHandLayer);
+        self.secondHandLayer.contents = (__bridge id)cgImageForLayer(@"REDINDICATOR", self.secondHandLayer);
+    }];
+}
 
 #pragma mark - Clock logic and animation
 
