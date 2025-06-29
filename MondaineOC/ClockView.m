@@ -125,6 +125,37 @@
     return layer;
 }
 
+/**
+ * updates the image content of all layers based on current system theme
+ * 通过先设为 nil 来强制刷新图层缓存。
+ */
+- (void)updateLayerImages {
+    // 背景
+    self.backgroundLayer.contents = nil;
+    self.backgroundLayer.contents = [NSImage imageNamed:@"BG"];
+    
+    // 表盘
+    self.clockFaceLayer.contents = nil;
+    self.clockFaceLayer.contents = [NSImage imageNamed:@"ClockFace"];
+    
+    // 刻度
+    self.indicatorLayer.contents = nil;
+    self.indicatorLayer.contents = [NSImage imageNamed:@"ClockIndicator"];
+    
+    // 时针
+    self.hourHandLayer.contents = nil;
+    self.hourHandLayer.contents = [NSImage imageNamed:@"HOURBAR"];
+    
+    // 分针
+    self.minuteHandLayer.contents = nil;
+    self.minuteHandLayer.contents = [NSImage imageNamed:@"MINBAR"];
+    
+    // 秒针
+    self.secondHandLayer.contents = nil;
+    self.secondHandLayer.contents = [NSImage imageNamed:@"REDINDICATOR"];
+}
+
+
 #pragma mark - layout & drawing
 
 - (void)layout {
@@ -171,6 +202,17 @@
     self.secondHandLayer.bounds = CGRectMake(0, 0, 383, 579);
     // 这里 SwiftUI 是 y: -1，对应 CALayer 就是 y 轴正向移动
     self.secondHandLayer.position = CGPointMake(centerPoint.x, centerPoint.y + 1);
+}
+
+
+/**
+ * 当视图的有效外观（如深/浅色模式）发生改变时，系统会自动调用此方法。
+ */
+- (void)viewDidChangeEffectiveAppearance {
+    [super viewDidChangeEffectiveAppearance];
+    
+    // 手动更新所有图层的图像，以匹配新的外观
+    [self updateLayerImages];
 }
 
 
