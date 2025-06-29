@@ -250,20 +250,47 @@
  * Manages "stop2go" animation of the second
  */
 - (void)updateSecondHandAnimationForSecond:(NSInteger)second minute:(NSInteger)minute {
-    // When a minute starts (second == 0)
+    
     if (second == 0) {
-        // JumpForMinute
+        // --- start on 00" ---
+        
+        [self.secondHandLayer removeAllAnimations];
+        self.secondHandLayer.transform = CATransform3DIdentity;
         [self animateMinuteHandJumpForMinute:minute];
-        
-        // 58.5s
-        CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.z"];
-        animation.fromValue = @(0);
-        animation.toValue = @(-2 * M_PI);
-        animation.duration = 58.5;
-        animation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
-        
-        [self.secondHandLayer addAnimation:animation forKey:@"secondHandAnimation"];
 
+        // new round
+        CABasicAnimation *sweepAnimation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.z"];
+        sweepAnimation.fromValue = @(0);
+        sweepAnimation.toValue = @(-2 * M_PI);
+        sweepAnimation.duration = 58.5;
+        sweepAnimation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
+        sweepAnimation.removedOnCompletion = NO;
+        sweepAnimation.fillMode = kCAFillModeForwards;
+
+        [self.secondHandLayer addAnimation:sweepAnimation forKey:@"secondHandAnimation"];
+
+    } else {
+        // --- start in second 01"-59"---
+        
+        // 检查秒针当前是否已经有动画了，如果还没有...
+        if ([self.secondHandLayer animationForKey:@"secondHandAnimation"] == nil) {
+            
+            // 创建一个标准的平滑动画
+            CABasicAnimation *sweepAnimation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.z"];
+            sweepAnimation.fromValue = @(0);
+            sweepAnimation.toValue = @(-2 * M_PI);
+            sweepAnimation.duration = 58.5;
+            sweepAnimation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
+            sweepAnimation.removedOnCompletion = NO;
+            sweepAnimation.fillMode = kCAFillModeForwards;
+
+            // --- 这是最关键的最终修正 ---
+            // 告诉动画，它的开始时间是在 N 秒之前
+            // CACurrentMediaTime() 是当前的绝对时间
+            sweepAnimation.beginTime = [self.secondHandLayer convertTime:CACurrentMediaTime() fromLayer:nil] - second;
+            
+            [self.secondHandLayer addAnimation:sweepAnimation forKey:@"secondHandAnimation"];
+        }
     }
 }
 
