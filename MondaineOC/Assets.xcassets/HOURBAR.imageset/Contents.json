@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "HOURBAR.svg",
+      "filename" : "Group 2.svg",
       "idiom" : "universal",
       "scale" : "1x"
     },
@@ -12,12 +12,12 @@
           "value" : "dark"
         }
       ],
-      "filename" : "HOURBAR_Dark.svg",
+      "filename" : "BLK.svg",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "HOURBAR 1.svg",
+      "filename" : "Group 3.svg",
       "idiom" : "universal",
       "scale" : "2x"
     },
@@ -28,12 +28,12 @@
           "value" : "dark"
         }
       ],
-      "filename" : "HOURBAR_Dark 1.svg",
+      "filename" : "BLK 1.svg",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "HOURBAR 2.svg",
+      "filename" : "Group 4.svg",
       "idiom" : "universal",
       "scale" : "3x"
     },
@@ -44,7 +44,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "HOURBAR_Dark 2.svg",
+      "filename" : "BLK 2.svg",
       "idiom" : "universal",
       "scale" : "3x"
     }

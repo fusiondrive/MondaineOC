@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "MINBAR.svg",
+      "filename" : "Group 3.svg",
       "idiom" : "universal",
       "scale" : "1x"
     },
@@ -12,12 +12,12 @@
           "value" : "dark"
         }
       ],
-      "filename" : "MINBAR_Dark.svg",
+      "filename" : "Group 3BLK.svg",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "MINBAR 1.svg",
+      "filename" : "Group 4.svg",
       "idiom" : "universal",
       "scale" : "2x"
     },
@@ -28,12 +28,12 @@
           "value" : "dark"
         }
       ],
-      "filename" : "MINBAR_Dark 1.svg",
+      "filename" : "Group 3BLK 1.svg",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "MINBAR 2.svg",
+      "filename" : "Group 5.svg",
       "idiom" : "universal",
       "scale" : "3x"
     },
@@ -44,7 +44,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "MINBAR_Dark 2.svg",
+      "filename" : "Group 3BLK 2.svg",
       "idiom" : "universal",
       "scale" : "3x"
     }

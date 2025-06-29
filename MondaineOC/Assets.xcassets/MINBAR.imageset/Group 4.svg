@@ -1,9 +1,9 @@
-<svg width="50" height="712" viewBox="0 0 50 712" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="51" height="712" viewBox="0 0 51 712" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g filter="url(#filter0_d_60_30)">
-<rect x="10.0001" y="1.00012" width="30" height="451" fill="#262626"/>
+<rect x="10" y="1" width="31" height="451" fill="#262626"/>
 </g>
 <defs>
-<filter id="filter0_d_60_30" x="0.00012207" y="0.00012207" width="50" height="471" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<filter id="filter0_d_60_30" x="0" y="0" width="51" height="471" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
 <feFlood flood-opacity="0" result="BackgroundImageFix"/>
 <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
 <feMorphology radius="2" operator="erode" in="SourceAlpha" result="effect1_dropShadow_60_30"/>
