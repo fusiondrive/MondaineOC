@@ -166,12 +166,12 @@
 
     // --- MINBAR ---
     // SwiftUI: .frame(width: 50, height: 685.73)
-    self.minuteHandLayer.bounds = CGRectMake(0, 0, 37, 673);
+    self.minuteHandLayer.bounds = CGRectMake(0, 0, 37, 640);
     self.minuteHandLayer.position = centerPoint;
 
     // --- REDINDICATOR ---
     // SwiftUI: .frame(width: 383, height: 579), .offset(y: -1)
-    self.secondHandLayer.bounds = CGRectMake(0, 0, 60, 567);
+    self.secondHandLayer.bounds = CGRectMake(0, 0, 66, 567);
     // 这里 SwiftUI 是 y: -1，对应 CALayer 就是 y 轴正向移动
     self.secondHandLayer.position = centerPoint;
 }
