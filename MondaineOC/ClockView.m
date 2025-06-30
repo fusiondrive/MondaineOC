@@ -170,13 +170,13 @@
     // --- ClockFace ---
     // SwiftUI: .frame(width: 785, height: 785)
     self.clockFaceLayer.bounds = CGRectMake(0, 0, 785, 785);
-    self.clockFaceLayer.position = centerPoint;
+    self.clockFaceLayer.position = CGPointMake(centerPoint.x, centerPoint.y + 6);
 
     // --- ClockIndicator ---
     // SwiftUI: .frame(width: 730, height: 730), .offset(y: 4)
     self.indicatorLayer.bounds = CGRectMake(0, 0, 725, 725);
     // 注意：CALayer 的坐标系 y 轴向上，SwiftUI 的 offset y 轴向下，所以这里用减法
-    self.indicatorLayer.position = CGPointMake(centerPoint.x, centerPoint.y - 6);
+    self.indicatorLayer.position = CGPointMake(centerPoint.x, centerPoint.y - 2);
 
     // --- HOURBAR ---
     // SwiftUI: .frame(width: 50, height: 433.87)
@@ -185,7 +185,7 @@
 
     // --- MINBAR ---
     // SwiftUI: .frame(width: 50, height: 685.73)
-    self.minuteHandLayer.bounds = CGRectMake(0, 0, 785, 785);
+    self.minuteHandLayer.bounds = CGRectMake(0, 0, 37, 645);
     self.minuteHandLayer.position = centerPoint;
 
     // --- REDINDICATOR ---
