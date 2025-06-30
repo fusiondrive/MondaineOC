@@ -14,9 +14,14 @@
 @property (nonatomic, strong) CALayer *backgroundLayer;
 @property (nonatomic, strong) CALayer *clockFaceLayer;
 @property (nonatomic, strong) CALayer *indicatorLayer;
+
 @property (nonatomic, strong) CALayer *hourHandLayer;
+@property (nonatomic, strong) CALayer *hourHandContainerLayer;
 @property (nonatomic, strong) CALayer *minuteHandLayer;
+@property (nonatomic, strong) CALayer *minuteHandContainerLayer;
 @property (nonatomic, strong) CALayer *secondHandLayer;
+@property (nonatomic, strong) CALayer *secondHandContainerLayer;
+
 @property (nonatomic, assign) BOOL hasPerformedInitialLayout;
 
 // Timer for clock updates
@@ -69,35 +74,49 @@
  * 创建并配置时钟的所有 CALayer 组件。
  */
 - (void)setupLayers {
-    // setup backgroundLayer
-    self.backgroundLayer = [self createLayerWithImageNamed:@"BG"];
+    const CGFloat MAX_LENGTH = 700.0;
+    
+    // --- [最终修正] 创建背景并设置其独特的填充属性 ---
+    self.backgroundLayer = [CALayer layer];
+    NSImage *bgImage = [NSImage imageNamed:@"BG"];
+    if (bgImage) {
+        self.backgroundLayer.contents = bgImage;
+    }
+    // 使用 kCAGravityResizeAspectFill 来确保背景平铺满整个视图，不会留白
     self.backgroundLayer.contentsGravity = kCAGravityResizeAspectFill;
 
-    // clockFaceLayer
+    // 其他图层仍然使用标准方法创建，以保持形状比例
     self.clockFaceLayer = [self createLayerWithImageNamed:@"ClockFace"];
-    
-    // indicatorLayer
     self.indicatorLayer = [self createLayerWithImageNamed:@"ClockIndicator"];
-    
-    // hourHandLayer
+
+    // --- 创建时针 ---
+    self.hourHandContainerLayer = [CALayer layer];
+    self.hourHandContainerLayer.frame = CGRectMake(0, 0, MAX_LENGTH, MAX_LENGTH);
     self.hourHandLayer = [self createLayerWithImageNamed:@"HOURBAR"];
-    self.hourHandLayer.anchorPoint = CGPointMake(0.5, 0.5);
-    
-    // minuteHandLayer
+    self.hourHandLayer.frame = self.hourHandContainerLayer.bounds;
+    [self.hourHandContainerLayer addSublayer:self.hourHandLayer];
+
+    // --- 创建分针 ---
+    self.minuteHandContainerLayer = [CALayer layer];
+    self.minuteHandContainerLayer.frame = CGRectMake(0, 0, MAX_LENGTH, MAX_LENGTH);
     self.minuteHandLayer = [self createLayerWithImageNamed:@"MINBAR"];
-    self.minuteHandLayer.anchorPoint = CGPointMake(0.5, 0.5);
-
-    // secondHandLayer
+    self.minuteHandLayer.frame = self.minuteHandContainerLayer.bounds;
+    [self.minuteHandContainerLayer addSublayer:self.minuteHandLayer];
+    
+    // --- 创建秒针 ---
+    self.secondHandContainerLayer = [CALayer layer];
+    self.secondHandContainerLayer.frame = CGRectMake(0, 0, MAX_LENGTH, MAX_LENGTH);
     self.secondHandLayer = [self createLayerWithImageNamed:@"REDINDICATOR"];
-    self.secondHandLayer.anchorPoint = CGPointMake(0.5, 0.5);
+    self.secondHandLayer.frame = self.secondHandContainerLayer.bounds;
+    [self.secondHandContainerLayer addSublayer:self.secondHandLayer];
 
-    // Add all layers to main layer
+    // --- 按顺序添加图层 ---
     [self.layer addSublayer:self.backgroundLayer];
     [self.layer addSublayer:self.clockFaceLayer];
     [self.layer addSublayer:self.indicatorLayer];
-    [self.layer addSublayer:self.hourHandLayer];
-    [self.layer addSublayer:self.minuteHandLayer];
-    [self.layer addSublayer:self.secondHandLayer];
+    [self.layer addSublayer:self.hourHandContainerLayer];
+    [self.layer addSublayer:self.minuteHandContainerLayer];
+    [self.layer addSublayer:self.secondHandContainerLayer];
 }
 
 /**
@@ -161,12 +180,12 @@
 
     // --- HOURBAR ---
     // SwiftUI: .frame(width: 50, height: 433.87)
-    self.hourHandLayer.bounds = CGRectMake(0, 0, 37, 434);
+    self.hourHandLayer.bounds = CGRectMake(0, 0, 37, 454);
     self.hourHandLayer.position = centerPoint; // 同样居中
 
     // --- MINBAR ---
     // SwiftUI: .frame(width: 50, height: 685.73)
-    self.minuteHandLayer.bounds = CGRectMake(0, 0, 37, 640);
+    self.minuteHandLayer.bounds = CGRectMake(0, 0, 785, 785);
     self.minuteHandLayer.position = centerPoint;
 
     // --- REDINDICATOR ---
