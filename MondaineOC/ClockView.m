@@ -155,25 +155,25 @@
 
     // --- ClockIndicator ---
     // SwiftUI: .frame(width: 730, height: 730), .offset(y: 4)
-    self.indicatorLayer.bounds = CGRectMake(0, 0, 730, 730);
+    self.indicatorLayer.bounds = CGRectMake(0, 0, 725, 725);
     // 注意：CALayer 的坐标系 y 轴向上，SwiftUI 的 offset y 轴向下，所以这里用减法
-    self.indicatorLayer.position = CGPointMake(centerPoint.x, centerPoint.y - 4);
+    self.indicatorLayer.position = CGPointMake(centerPoint.x, centerPoint.y - 6);
 
     // --- HOURBAR ---
     // SwiftUI: .frame(width: 50, height: 433.87)
-    self.hourHandLayer.bounds = CGRectMake(0, 0, 50, 433.87);
+    self.hourHandLayer.bounds = CGRectMake(0, 0, 37, 434);
     self.hourHandLayer.position = centerPoint; // 同样居中
 
     // --- MINBAR ---
     // SwiftUI: .frame(width: 50, height: 685.73)
-    self.minuteHandLayer.bounds = CGRectMake(0, 0, 50, 685.73);
+    self.minuteHandLayer.bounds = CGRectMake(0, 0, 37, 673);
     self.minuteHandLayer.position = centerPoint;
 
     // --- REDINDICATOR ---
     // SwiftUI: .frame(width: 383, height: 579), .offset(y: -1)
-    self.secondHandLayer.bounds = CGRectMake(0, 0, 383, 579);
+    self.secondHandLayer.bounds = CGRectMake(0, 0, 60, 567);
     // 这里 SwiftUI 是 y: -1，对应 CALayer 就是 y 轴正向移动
-    self.secondHandLayer.position = CGPointMake(centerPoint.x, centerPoint.y + 1);
+    self.secondHandLayer.position = centerPoint;
 }
 
 
