@@ -74,46 +74,49 @@
  * 创建并配置时钟的所有 CALayer 组件。
  */
 - (void)setupLayers {
-    // ... 背景和表盘的代码保持不变 ...
+    // --- 创建基础图层 ---
     self.backgroundLayer = [self createLayerWithImageNamed:@"BG"];
     self.backgroundLayer.contentsGravity = kCAGravityResizeAspectFill;
+
+    // --- 创建表盘和刻度，并为它们应用“原始风格”的微妙阴影 ---
     self.clockFaceLayer = [self createLayerWithImageNamed:@"ClockFace"];
-    
-    // --- 在这里为刻度盘恢复阴影 ---
+    self.clockFaceLayer.shadowColor = [NSColor blackColor].CGColor;
+    self.clockFaceLayer.shadowOpacity = 0.5;
+    self.clockFaceLayer.shadowOffset = CGSizeMake(0, -2);
+    self.clockFaceLayer.shadowRadius = 5.0;
+
     self.indicatorLayer = [self createLayerWithImageNamed:@"ClockIndicator"];
     self.indicatorLayer.shadowColor = [NSColor blackColor].CGColor;
     self.indicatorLayer.shadowOpacity = 0.5;
     self.indicatorLayer.shadowOffset = CGSizeMake(0, -2);
     self.indicatorLayer.shadowRadius = 5.0;
 
-    // --- 时针 ---
+    // --- 创建指针图层，并为它们应用“增强的晕影” ---
+    // 时针
     self.hourHandLayer = [self createLayerWithImageNamed:@"HOURBAR"];
     self.hourHandLayer.anchorPoint = CGPointMake(0.5, 0.5);
-    // 为时针单独添加阴影
     self.hourHandLayer.shadowColor = [NSColor blackColor].CGColor;
-    self.hourHandLayer.shadowRadius = 15.0;      // 更大的模糊半径，实现“晕感”
-    self.hourHandLayer.shadowOpacity = 0.6;      // 更深的不透明度
-    self.hourHandLayer.shadowOffset = CGSizeMake(0, -3); // 稍大的偏移，增加立体感
+    self.hourHandLayer.shadowRadius = 15.0; // 更大的模糊，实现“晕感”
+    self.hourHandLayer.shadowOpacity = 0.6; // 更深的不透明度
+    self.hourHandLayer.shadowOffset = CGSizeMake(0, 5);  // 光从上往下打的效果
 
-    // --- 分针 ---
+    // 分针
     self.minuteHandLayer = [self createLayerWithImageNamed:@"MINBAR"];
     self.minuteHandLayer.anchorPoint = CGPointMake(0.5, 0.5);
-    // 为分针单独添加阴影 (使用相同的参数)
     self.minuteHandLayer.shadowColor = [NSColor blackColor].CGColor;
     self.minuteHandLayer.shadowRadius = 15.0;
     self.minuteHandLayer.shadowOpacity = 0.6;
-    self.minuteHandLayer.shadowOffset = CGSizeMake(0, -3);
+    self.minuteHandLayer.shadowOffset = CGSizeMake(0, 5);
 
-    // --- 秒针 ---
+    // 秒针
     self.secondHandLayer = [self createLayerWithImageNamed:@"REDINDICATOR"];
     self.secondHandLayer.anchorPoint = CGPointMake(0.5, 0.5);
-    // 为秒针单独添加阴影 (可以按需使用不同参数，比如让它更轻微)
     self.secondHandLayer.shadowColor = [NSColor blackColor].CGColor;
-    self.secondHandLayer.shadowRadius = 10.0; // 秒针的阴影可以稍微收敛一些
+    self.secondHandLayer.shadowRadius = 10.0; // 秒针阴影可以稍轻一些
     self.secondHandLayer.shadowOpacity = 0.5;
-    self.secondHandLayer.shadowOffset = CGSizeMake(0, -2);
+    self.secondHandLayer.shadowOffset = CGSizeMake(0, 3);
 
-    // --- 按顺序将图层添加到主图层 ---
+    // --- 按正确的视觉顺序将所有图层添加到主图层 ---
     [self.layer addSublayer:self.backgroundLayer];
     [self.layer addSublayer:self.clockFaceLayer];
     [self.layer addSublayer:self.indicatorLayer];
@@ -135,8 +138,8 @@
     }
     
     CALayer *layer = [CALayer layer];
-    //layer.contents = image;
     layer.contentsGravity = kCAGravityResizeAspect;
+    
     
     return layer;
 }
