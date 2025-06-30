@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "MBSQ.svg",
+      "filename" : "FMB.svg",
       "idiom" : "universal",
       "scale" : "1x"
     },
@@ -17,7 +17,7 @@
       "scale" : "1x"
     },
     {
-      "filename" : "MBSQ 1.svg",
+      "filename" : "FMB 1.svg",
       "idiom" : "universal",
       "scale" : "2x"
     },
@@ -33,7 +33,7 @@
       "scale" : "2x"
     },
     {
-      "filename" : "MBSQ 2.svg",
+      "filename" : "FMB 2.svg",
       "idiom" : "universal",
       "scale" : "3x"
     },
