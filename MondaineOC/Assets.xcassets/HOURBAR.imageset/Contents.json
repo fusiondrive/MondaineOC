@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "FHB.svg",
+      "filename" : "FFHB.svg",
       "idiom" : "universal",
       "scale" : "1x"
     },
@@ -12,12 +12,12 @@
           "value" : "dark"
         }
       ],
-      "filename" : "FHBB.svg",
+      "filename" : "FFHBB.svg",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "FHB 1.svg",
+      "filename" : "FFHB 1.svg",
       "idiom" : "universal",
       "scale" : "2x"
     },
@@ -28,12 +28,12 @@
           "value" : "dark"
         }
       ],
-      "filename" : "FHBB 1.svg",
+      "filename" : "FFHBB 1.svg",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "FHB 2.svg",
+      "filename" : "FFHB 2.svg",
       "idiom" : "universal",
       "scale" : "3x"
     },
@@ -44,7 +44,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "FHBB 2.svg",
+      "filename" : "FFHBB 2.svg",
       "idiom" : "universal",
       "scale" : "3x"
     }
