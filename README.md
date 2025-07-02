@@ -46,7 +46,7 @@ The creation of this clock was a design-first process. The goal was not just to 
 
 ## License
 
-This project is licensed under the **GNU Affero General Public License v3.0**. See the [LICENSE](LICENSE) file for the full license text.
+This project is licensed under the **GNU Affero General Public License v3.0**. See the [LICENSE](https://github.com/fusiondrive/MondaineOC/blob/main/LICENSE.txt) file for the full license text.
 
 ---
 
