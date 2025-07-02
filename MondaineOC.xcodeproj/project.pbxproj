@@ -6,8 +6,15 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		AAB4DF412E154ECC002B96B8 /* LICENSE.txt in Resources */ = {isa = PBXBuildFile; fileRef = AAB4DF402E154ECC002B96B8 /* LICENSE.txt */; };
+		AAB4DF442E154FBB002B96B8 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = AAB4DF432E154FAD002B96B8 /* README.md */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		AA54438C2E11589A00023506 /* MondaineOC.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MondaineOC.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AAB4DF402E154ECC002B96B8 /* LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
+		AAB4DF432E154FAD002B96B8 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -32,6 +39,8 @@
 		AA5443832E11589A00023506 = {
 			isa = PBXGroup;
 			children = (
+				AAB4DF402E154ECC002B96B8 /* LICENSE.txt */,
+				AAB4DF432E154FAD002B96B8 /* README.md */,
 				AA54438E2E11589A00023506 /* MondaineOC */,
 				AA54438D2E11589A00023506 /* Products */,
 			);
@@ -108,6 +117,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AAB4DF412E154ECC002B96B8 /* LICENSE.txt in Resources */,
+				AAB4DF442E154FBB002B96B8 /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

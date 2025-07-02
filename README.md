@@ -1,4 +1,4 @@
-# Swiss Railway Clock - A Classic Mondaine Clock Mockup for iOS
+# Swiss Railway Clock - A Mondaine Clock Mockup
 
 <p align="center">
   <img src="#" alt="Swiss Railway Clock Preview" width="400"/>
