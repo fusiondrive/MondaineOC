@@ -9,12 +9,14 @@
 /* Begin PBXBuildFile section */
 		AAB4DF412E154ECC002B96B8 /* LICENSE.txt in Resources */ = {isa = PBXBuildFile; fileRef = AAB4DF402E154ECC002B96B8 /* LICENSE.txt */; };
 		AAB4DF442E154FBB002B96B8 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = AAB4DF432E154FAD002B96B8 /* README.md */; };
+		AAB4DF462E1551A4002B96B8 /* preview.png in Resources */ = {isa = PBXBuildFile; fileRef = AAB4DF452E1551A4002B96B8 /* preview.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		AA54438C2E11589A00023506 /* MondaineOC.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MondaineOC.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AAB4DF402E154ECC002B96B8 /* LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
 		AAB4DF432E154FAD002B96B8 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		AAB4DF452E1551A4002B96B8 /* preview.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = preview.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -39,6 +41,7 @@
 		AA5443832E11589A00023506 = {
 			isa = PBXGroup;
 			children = (
+				AAB4DF452E1551A4002B96B8 /* preview.png */,
 				AAB4DF402E154ECC002B96B8 /* LICENSE.txt */,
 				AAB4DF432E154FAD002B96B8 /* README.md */,
 				AA54438E2E11589A00023506 /* MondaineOC */,
@@ -119,6 +122,7 @@
 			files = (
 				AAB4DF412E154ECC002B96B8 /* LICENSE.txt in Resources */,
 				AAB4DF442E154FBB002B96B8 /* README.md in Resources */,
+				AAB4DF462E1551A4002B96B8 /* preview.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

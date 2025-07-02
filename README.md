@@ -1,7 +1,7 @@
 # Swiss Railway Clock - A Mondaine Clock Mockup
 
 <p align="center">
-  <img src="#" alt="Swiss Railway Clock Preview" width="400"/>
+  <img src="https://github.com/fusiondrive/MondaineOC/main/preview.png" alt="Swiss Railway Clock Preview" width="400"/>
 </p>
 <p align="center">
   <i>An iOS 6 built-in clock style mockup by the classic Mondaine design.</i>
@@ -36,16 +36,6 @@ The creation of this clock was a design-first process. The goal was not just to 
     * Recreating the iconic red "paddle" second hand.
 3.  **Asset Export**: The finalized components were exported as high-resolution PNGs to be used within the iOS application.
 
-## Getting Started
-
-*(You can add instructions on how to build and run your project here)*
-
-1.  Clone the repository:
-    ```bash
-    git clone [https://github.com/your-username/your-repo-name.git](https://github.com/your-username/your-repo-name.git)
-    ```
-2.  Open the `.xcodeproj` or `.xcworkspace` file in Xcode.
-3.  Build and run the project on an iPhone Simulator or a physical device.
 
 ## Technical Details
 
