@@ -1,7 +1,7 @@
 # Swiss Railway Clock - A Mondaine Clock Mockup
 
 <p align="center">
-  <img src="https://github.com/fusiondrive/MondaineOC/main/preview.png" alt="Swiss Railway Clock Preview" width="400"/>
+  <img src="https://github.com/fusiondrive/MondaineOC/blob/main/preview.png" alt="Swiss Railway Clock Preview" width="400"/>
 </p>
 <p align="center">
   <i>An iOS 6 built-in clock style mockup by the classic Mondaine design.</i>
