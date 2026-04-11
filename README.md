@@ -26,8 +26,8 @@ Developed by **Steve Wang**, a senior Electrical and Computer Engineering studen
 * **Native Performance**: Built with Objective-C and Core Animation for near-zero CPU impact, even with 60fps smooth sweeping animations.
 
 <p align="center">
-  <img src=".../preview_portrait.png" alt="Portrait Mode" width="400" style="margin-right: 20px;"/>
-  <img src=".../preview_dark.png" alt="Dark Mode" width="400"/>
+  <img src="https://github.com/fusiondrive/MondaineOC/blob/main/preview_portrait.png" alt="Portrait Mode" width="400" style="margin-right: 20px;"/>
+  <img src="https://github.com/fusiondrive/MondaineOC/blob/main/preview_dark.png" alt="Dark Mode" width="400"/>
 </p>
 
 ## Technical Details
