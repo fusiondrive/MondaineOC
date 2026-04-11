@@ -26,12 +26,14 @@
 
 // Text layer for location label shown only in wide-window mode
 @property (nonatomic, strong) CATextLayer *locationTextLayer;
+@property (nonatomic, strong) CATextLayer *weatherTextLayer;
 
 // CoreLocation stack for real city name
 @property (nonatomic, strong) CLLocationManager *locationManager;
 @property (nonatomic, strong) CLGeocoder        *geocoder;
 // Resolved city; defaults to "Local" until geocoding succeeds
 @property (nonatomic, copy)   NSString          *cityName;
+@property (nonatomic, copy)   NSString          *weatherTemperatureText;
 // Last computed layout scale, kept so appearance-only rebuilds can reuse it
 @property (nonatomic, assign) CGFloat            layoutScale;
 
@@ -139,10 +141,19 @@
     self.locationTextLayer.allowsFontSubpixelQuantization = YES;
     self.locationTextLayer.hidden = YES;
 
+    self.weatherTextLayer = [CATextLayer layer];
+    self.weatherTextLayer.alignmentMode = kCAAlignmentRight;
+    self.weatherTextLayer.wrapped = NO;
+    self.weatherTextLayer.truncationMode = kCATruncationEnd;
+    self.weatherTextLayer.contentsScale = [[NSScreen mainScreen] backingScaleFactor];
+    self.weatherTextLayer.allowsFontSubpixelQuantization = YES;
+    self.weatherTextLayer.hidden = YES;
+
     // --- 按正确的视觉顺序将所有图层添加到主图层 ---
     [self.layer addSublayer:self.backgroundLayer];
     // Location label sits above background but beneath all clock layers
     [self.layer addSublayer:self.locationTextLayer];
+    [self.layer addSublayer:self.weatherTextLayer];
     [self.layer addSublayer:self.clockFaceLayer];
     [self.layer addSublayer:self.indicatorLayer];
     [self.layer addSublayer:self.hourHandLayer];
@@ -222,32 +233,53 @@
     CGFloat clockFaceDiameter = MIN(width, height);
     CGFloat cityFontSize = MAX(14.0, 32.0 * scale);
     CGFloat dateFontSize = MAX(10.0, 16.0 * scale);
-    CGFloat textHeight = cityFontSize * 1.2 + dateFontSize * 1.4;
+    CGFloat lineGap = MAX(4.0, 8.0 * scale);
+    CGFloat textHeight = cityFontSize * 1.2 + lineGap + dateFontSize * 1.4;
+    CGFloat backingScale = self.window.backingScaleFactor > 0
+        ? self.window.backingScaleFactor
+        : [[NSScreen mainScreen] backingScaleFactor];
 
     if (width > height * 1.2) {
         self.locationTextLayer.hidden = NO;
+        self.weatherTextLayer.hidden = NO;
 
         // Store scale so appearance-only rebuilds (appearance change, geocoder callback)
         // can reuse the same font sizes without needing to recompute layout.
         self.layoutScale = scale;
 
         CGFloat leftSpaceWidth = (width - clockFaceDiameter) / 2.0;
+        CGFloat rightSpaceWidth = (width - clockFaceDiameter) / 2.0;
         CGFloat yPos = (height - textHeight) / 2.0;
         self.locationTextLayer.frame = CGRectMake(0, yPos, leftSpaceWidth, textHeight);
-        self.locationTextLayer.contentsScale = self.window.backingScaleFactor;
+        self.locationTextLayer.contentsScale = backingScale;
+        self.weatherTextLayer.alignmentMode = kCAAlignmentCenter;
+        self.weatherTextLayer.frame = CGRectMake(width - rightSpaceWidth,
+                                                 yPos,
+                                                 rightSpaceWidth,
+                                                 textHeight);
+        self.weatherTextLayer.contentsScale = backingScale;
         [self updateLocationTextLayerAppearance];
     } else if (height > width * 1.2) {
         self.locationTextLayer.hidden = NO;
+        self.weatherTextLayer.hidden = NO;
         self.layoutScale = scale;
 
         CGFloat topSpaceHeight = (height - clockFaceDiameter) / 2.0;
         CGFloat yPos = height - (topSpaceHeight / 2.0) - (textHeight / 2.0);
+        CGFloat weatherWidth = MIN(width * 0.4, MAX(120.0, 170.0 * scale));
 
         self.locationTextLayer.frame = CGRectMake(0, yPos, width, textHeight);
-        self.locationTextLayer.contentsScale = self.window.backingScaleFactor;
+        self.locationTextLayer.contentsScale = backingScale;
+        self.weatherTextLayer.alignmentMode = kCAAlignmentRight;
+        self.weatherTextLayer.frame = CGRectMake(width - weatherWidth - (25.0 * scale),
+                                                 yPos,
+                                                 weatherWidth,
+                                                 textHeight);
+        self.weatherTextLayer.contentsScale = backingScale;
         [self updateLocationTextLayerAppearance];
     } else {
         self.locationTextLayer.hidden = YES;
+        self.weatherTextLayer.hidden = YES;
     }
 }
 
@@ -296,20 +328,49 @@
         self.locationTextLayer.string = [self buildLocationAttributedStringWithScale:effectiveScale
                                                                               isDark:isDark];
 
+        NSMutableParagraphStyle *weatherParagraphStyle = [[NSMutableParagraphStyle alloc] init];
+        BOOL landscapeWeather = !self.weatherTextLayer.hidden
+            && self.weatherTextLayer.alignmentMode != nil
+            && [self.weatherTextLayer.alignmentMode isEqualToString:kCAAlignmentCenter];
+        weatherParagraphStyle.alignment = landscapeWeather ? NSTextAlignmentCenter : NSTextAlignmentRight;
+        CGFloat weatherFontSize = landscapeWeather
+            ? MAX(38.0, 46.0 * effectiveScale)
+            : MAX(28.0, 54.0 * effectiveScale);
+        NSFont *weatherFont = [NSFont systemFontOfSize:weatherFontSize weight:NSFontWeightLight];
+        NSColor *primaryTextColor = isDark
+            ? [NSColor colorWithWhite:0.9 alpha:1.0]
+            : [NSColor colorWithWhite:0.25 alpha:1.0];
+        NSString *weatherText = self.weatherTemperatureText.length > 0 ? self.weatherTemperatureText : @"";
+        self.weatherTextLayer.string = [[NSAttributedString alloc] initWithString:weatherText
+                                                                       attributes:@{
+            NSFontAttributeName: weatherFont,
+            NSForegroundColorAttributeName: primaryTextColor,
+            NSParagraphStyleAttributeName: weatherParagraphStyle
+        }];
+
         if (isDark) {
             self.locationTextLayer.shadowColor  = [NSColor blackColor].CGColor;
             self.locationTextLayer.shadowOffset = CGSizeMake(0, -1);
             self.locationTextLayer.shadowOpacity = 0.8f;
             self.locationTextLayer.shadowRadius  = 0.0;
+            self.weatherTextLayer.shadowColor  = [NSColor blackColor].CGColor;
+            self.weatherTextLayer.shadowOffset = CGSizeMake(0, -1);
+            self.weatherTextLayer.shadowOpacity = 1.0f;
+            self.weatherTextLayer.shadowRadius  = 0.0;
         } else {
             self.locationTextLayer.shadowColor  = [NSColor whiteColor].CGColor;
             self.locationTextLayer.shadowOffset = CGSizeMake(0, -1);
             self.locationTextLayer.shadowOpacity = 1.0f;
             self.locationTextLayer.shadowRadius  = 0.0;
+            self.weatherTextLayer.shadowColor  = [NSColor whiteColor].CGColor;
+            self.weatherTextLayer.shadowOffset = CGSizeMake(0, -1);
+            self.weatherTextLayer.shadowOpacity = 1.0f;
+            self.weatherTextLayer.shadowRadius  = 0.0;
         }
     }];
 
     [self.locationTextLayer setNeedsDisplay];
+    [self.weatherTextLayer setNeedsDisplay];
     [CATransaction commit];
 }
 
@@ -323,6 +384,7 @@
     // Font sizes mirror the height calculation in layoutLayers
     CGFloat cityFontSize = MAX(14.0, floor(32.0 * scale));
     CGFloat dateFontSize = MAX(9.0,  floor(16.0 * scale));
+    CGFloat lineGap = MAX(4.0, 8.0 * scale);
 
     NSFont *cityFont = [NSFont systemFontOfSize:cityFontSize weight:NSFontWeightMedium];
     NSFont *dateFont = [NSFont systemFontOfSize:dateFontSize weight:NSFontWeightRegular];
@@ -338,6 +400,7 @@
 
     NSMutableParagraphStyle *centered = [[NSMutableParagraphStyle alloc] init];
     centered.alignment = NSTextAlignmentCenter;
+    centered.lineSpacing = lineGap;
 
     NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
     formatter.dateFormat = @"EEEE, MMMM d";
@@ -377,6 +440,7 @@
  */
 - (void)setupLocationManager {
     self.cityName = @"Local";    // fallback until geocoding succeeds
+    self.weatherTemperatureText = @"";
     self.layoutScale = 0.0;
 
     self.geocoder = [[CLGeocoder alloc] init];
@@ -392,6 +456,8 @@
      didUpdateLocations:(NSArray<CLLocation *> *)locations {
     CLLocation *location = locations.lastObject;
     if (!location) return;
+
+    [self fetchWeatherForCoordinate:location.coordinate];
 
     [self.geocoder reverseGeocodeLocation:location
                         completionHandler:^(NSArray<CLPlacemark *> *placemarks, NSError *error) {
@@ -410,6 +476,51 @@
             [self updateLocationTextLayerAppearance];
         });
     }];
+}
+
+- (void)fetchWeatherForCoordinate:(CLLocationCoordinate2D)coordinate {
+    NSString *urlString = [NSString stringWithFormat:
+        @"https://api.open-meteo.com/v1/forecast?latitude=%f&longitude=%f&current_weather=true&temperature_unit=fahrenheit",
+        coordinate.latitude,
+        coordinate.longitude];
+    NSURL *url = [NSURL URLWithString:urlString];
+    if (!url) {
+        return;
+    }
+
+    NSURLSessionDataTask *task = [[NSURLSession sharedSession]
+        dataTaskWithURL:url
+      completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+        if (error || data.length == 0) {
+            NSLog(@"Weather request failed: %@", error.localizedDescription);
+            return;
+        }
+
+        NSError *jsonError = nil;
+        id jsonObject = [NSJSONSerialization JSONObjectWithData:data options:0 error:&jsonError];
+        if (jsonError || ![jsonObject isKindOfClass:[NSDictionary class]]) {
+            NSLog(@"Weather JSON parse failed: %@", jsonError.localizedDescription);
+            return;
+        }
+
+        NSDictionary *jsonDictionary = (NSDictionary *)jsonObject;
+        NSDictionary *currentWeather = jsonDictionary[@"current_weather"];
+        NSNumber *temperature = [currentWeather isKindOfClass:[NSDictionary class]]
+            ? currentWeather[@"temperature"]
+            : nil;
+        if (![temperature isKindOfClass:[NSNumber class]]) {
+            return;
+        }
+
+        NSString *temperatureText = [NSString stringWithFormat:@"%ld°", lround(temperature.doubleValue)];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self.weatherTemperatureText = temperatureText;
+            self.weatherTextLayer.string = temperatureText;
+            [self updateLocationTextLayerAppearance];
+        });
+    }];
+
+    [task resume];
 }
 
 - (void)locationManager:(CLLocationManager *)manager
