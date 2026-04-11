@@ -6,6 +6,7 @@
 //
 
 #import "ClockView.h"
+#import "AppState.h"
 #import <QuartzCore/QuartzCore.h>
 
 @interface ClockView ()
@@ -151,48 +152,44 @@
 - (void)layout {
     [super layout];
     [self layoutLayers];
-    
-    if (!self.hasPerformedInitialLayout) {
-        [self updateLayerImages];
-        [self updateClockHands:nil];
 
+    // bounds 每次变化都重新光栅化，确保缩放后图片清晰
+    [self updateLayerImages];
+
+    if (!self.hasPerformedInitialLayout) {
+        [self updateClockHands:nil];
         self.hasPerformedInitialLayout = YES;
     }
 }
 
 - (void)layoutLayers {
-    // fill bg
+    // 以最短边为基准，计算相对于原始 800pt 设计画布的缩放比
+    CGFloat size = MIN(NSWidth(self.bounds), NSHeight(self.bounds));
+    CGFloat scale = size / 800.0;
+    CGPoint center = CGPointMake(CGRectGetMidX(self.bounds), CGRectGetMidY(self.bounds));
+
+    // 背景始终铺满整个视图
     self.backgroundLayer.frame = self.bounds;
-    
-    // get centerPoint
-    CGPoint centerPoint = CGPointMake(CGRectGetMidX(self.bounds), CGRectGetMidY(self.bounds));
 
-    // --- ClockFace ---
-    // SwiftUI: .frame(width: 785, height: 785)
-    self.clockFaceLayer.bounds = CGRectMake(0, 0, 785, 785);
-    self.clockFaceLayer.position = CGPointMake(centerPoint.x, centerPoint.y + 6);
+    // --- ClockFace: 原始 785×785, position offset (0, +6) ---
+    self.clockFaceLayer.bounds = CGRectMake(0, 0, 785 * scale, 785 * scale);
+    self.clockFaceLayer.position = CGPointMake(center.x, center.y + 6 * scale);
 
-    // --- ClockIndicator ---
-    // SwiftUI: .frame(width: 730, height: 730), .offset(y: 4)
-    self.indicatorLayer.bounds = CGRectMake(0, 0, 725, 725);
-    // 注意：CALayer 的坐标系 y 轴向上，SwiftUI 的 offset y 轴向下，所以这里用减法
-    self.indicatorLayer.position = CGPointMake(centerPoint.x, centerPoint.y - 2);
+    // --- ClockIndicator: 原始 725×725, position offset (0, -2) ---
+    self.indicatorLayer.bounds = CGRectMake(0, 0, 725 * scale, 725 * scale);
+    self.indicatorLayer.position = CGPointMake(center.x, center.y - 2 * scale);
 
-    // --- HOURBAR ---
-    // SwiftUI: .frame(width: 50, height: 433.87)
-    self.hourHandLayer.bounds = CGRectMake(0, 0, 37, 454);
-    self.hourHandLayer.position = centerPoint; // 同样居中
+    // --- HOURBAR: 原始 37×454, 居中 ---
+    self.hourHandLayer.bounds = CGRectMake(0, 0, 37 * scale, 454 * scale);
+    self.hourHandLayer.position = center;
 
-    // --- MINBAR ---
-    // SwiftUI: .frame(width: 50, height: 685.73)
-    self.minuteHandLayer.bounds = CGRectMake(0, 0, 37, 645);
-    self.minuteHandLayer.position = centerPoint;
+    // --- MINBAR: 原始 37×645, 居中 ---
+    self.minuteHandLayer.bounds = CGRectMake(0, 0, 37 * scale, 645 * scale);
+    self.minuteHandLayer.position = center;
 
-    // --- REDINDICATOR ---
-    // SwiftUI: .frame(width: 383, height: 579), .offset(y: -1)
-    self.secondHandLayer.bounds = CGRectMake(0, 0, 66, 567);
-    // 这里 SwiftUI 是 y: -1，对应 CALayer 就是 y 轴正向移动
-    self.secondHandLayer.position = centerPoint;
+    // --- REDINDICATOR: 原始 66×567, 居中 ---
+    self.secondHandLayer.bounds = CGRectMake(0, 0, 66 * scale, 567 * scale);
+    self.secondHandLayer.position = center;
 }
 
 
@@ -337,6 +334,77 @@
     // 将最终设置的角度也取反，并将 z 轴改回 1
     self.minuteHandLayer.transform = CATransform3DMakeRotation(-(toAngle), 0, 0, 1);
     [self.minuteHandLayer addAnimation:jumpAnimation forKey:@"minuteHandJump"];
+}
+
+#pragma mark - Right-click Menu
+
+- (NSMenu *)menuForEvent:(NSEvent *)event {
+    NSMenu *menu = [[NSMenu alloc] initWithTitle:@""];
+
+    BOOL isWidgetMode = [AppState sharedState].isWidgetMode;
+    NSString *toggleTitle = isWidgetMode ? @"退出悬浮小组件模式" : @"切换悬浮小组件模式";
+    NSMenuItem *toggleItem = [[NSMenuItem alloc]
+        initWithTitle:toggleTitle
+               action:@selector(toggleWidgetMode:)
+        keyEquivalent:@""];
+    toggleItem.target = self;
+    [menu addItem:toggleItem];
+
+    // Size presets are only meaningful in borderless widget mode.
+    if (isWidgetMode) {
+        NSMenuItem *sizeParentItem = [[NSMenuItem alloc]
+            initWithTitle:@"小组件尺寸"
+                   action:nil
+            keyEquivalent:@""];
+
+        NSMenu *sizeSubmenu = [[NSMenu alloc] initWithTitle:@"小组件尺寸"];
+
+        struct { NSString *title; NSInteger size; } presets[] = {
+            { @"小 (160×160)", 160 },
+            { @"中 (240×240)", 240 },
+            { @"大 (320×320)", 320 },
+        };
+        for (int i = 0; i < 3; i++) {
+            NSMenuItem *item = [[NSMenuItem alloc]
+                initWithTitle:presets[i].title
+                       action:@selector(resizeWidgetToPreset:)
+                keyEquivalent:@""];
+            item.target = self;
+            item.tag = presets[i].size;
+            [sizeSubmenu addItem:item];
+        }
+
+        sizeParentItem.submenu = sizeSubmenu;
+        [menu addItem:sizeParentItem];
+    }
+
+    NSMenuItem *quitItem = [[NSMenuItem alloc]
+        initWithTitle:@"退出应用"
+               action:@selector(terminate:)
+        keyEquivalent:@""];
+    quitItem.target = NSApp;
+    [menu addItem:quitItem];
+
+    return menu;
+}
+
+- (void)toggleWidgetMode:(id)sender {
+    [AppState sharedState].isWidgetMode = ![AppState sharedState].isWidgetMode;
+}
+
+- (void)resizeWidgetToPreset:(NSMenuItem *)sender {
+    NSWindow *window = self.window;
+    if (!window) return;
+
+    CGFloat newSize = (CGFloat)sender.tag;
+
+    // Expand/contract symmetrically around the current window center.
+    NSRect oldFrame = window.frame;
+    NSRect newFrame = NSMakeRect(NSMidX(oldFrame) - newSize / 2.0,
+                                 NSMidY(oldFrame) - newSize / 2.0,
+                                 newSize,
+                                 newSize);
+    [window setFrame:newFrame display:YES animate:YES];
 }
 
 @end

@@ -7,6 +7,8 @@
 
 #import "AppDelegate.h"
 #import "ClockView.h"
+#import "AppState.h"
+#import "WindowStyleManager.h"
 
 @interface AppDelegate ()
 
@@ -24,20 +26,32 @@
                                                     defer:NO];
     [self.window setTitle:@"Mondaine Clock (Objective-C)"];
     [self.window center];
-    
-    // create ClockView
+
+    // Lock to 1:1 aspect ratio so the clock face is never distorted.
+    self.window.contentAspectRatio = NSMakeSize(1.0, 1.0);
+    self.window.minSize = NSMakeSize(150.0, 150.0);
+
     self.clockView = [[ClockView alloc] initWithFrame:self.window.contentView.bounds];
     self.clockView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
-    
-    // set ClockView as contentView
     self.window.contentView = self.clockView;
-    
-    // show window
+
     [self.window makeKeyAndOrderFront:nil];
+
+    // Apply the persisted mode synchronously before the window becomes visible.
+    [WindowStyleManager syncWithAppStateForWindow:self.window animated:NO];
+
+    [[NSNotificationCenter defaultCenter]
+        addObserver:self
+           selector:@selector(widgetModeDidChange:)
+               name:AppStateWidgetModeDidChangeNotification
+             object:nil];
+}
+
+- (void)widgetModeDidChange:(NSNotification *)notification {
+    [WindowStyleManager syncWithAppStateForWindow:self.window animated:YES];
 }
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification {
-    // saves
 }
 
 - (BOOL)applicationSupportsSecureRestorableState:(NSApplication *)app {
