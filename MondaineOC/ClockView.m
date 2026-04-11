@@ -41,6 +41,7 @@
 
 // Timer for clock updates
 @property (nonatomic, strong) NSTimer *clockTimer;
+@property (nonatomic, strong) NSTimer *refreshTimer;
 
 @end
 
@@ -68,6 +69,8 @@
     // prevent memory leaks
     [self.clockTimer invalidate];
     self.clockTimer = nil;
+    [self.refreshTimer invalidate];
+    self.refreshTimer = nil;
 }
 
 #pragma mark - View Settings
@@ -449,6 +452,15 @@
     self.locationManager.delegate = self;
     self.locationManager.desiredAccuracy = kCLLocationAccuracyKilometer;
     [self.locationManager requestWhenInUseAuthorization];
+    [self.locationManager requestLocation];
+    self.refreshTimer = [NSTimer scheduledTimerWithTimeInterval:1800.0
+                                                         target:self
+                                                       selector:@selector(triggerDataRefresh)
+                                                       userInfo:nil
+                                                        repeats:YES];
+}
+
+- (void)triggerDataRefresh {
     [self.locationManager requestLocation];
 }
 
