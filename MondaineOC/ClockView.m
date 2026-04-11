@@ -314,26 +314,39 @@
  * animation for the minute to jump forward at the start of each minute
  */
 - (void)animateMinuteHandJumpForMinute:(NSInteger)minute {
-    // remove previous animations
     [self.minuteHandLayer removeAllAnimations];
-    
-    // Calculate the angle
+
     CGFloat previousMinute = (minute == 0) ? 59 : minute - 1;
-    CGFloat fromAngle = (previousMinute / 60.0) * 360.0 * M_PI / 180.0;
-    CGFloat toAngle = (minute / 60.0) * 360.0 * M_PI / 180.0;
+    CGFloat fromAngle = (previousMinute / 60.0) * 2.0 * M_PI;
+    CGFloat toAngle   = (minute       / 60.0) * 2.0 * M_PI;
 
     CABasicAnimation *jumpAnimation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.z"];
-
-    // Invert angles animation
-    jumpAnimation.fromValue = @(-(fromAngle));
-    jumpAnimation.toValue = @(-(toAngle));
-
-    jumpAnimation.duration = 0.25;
+    jumpAnimation.fromValue      = @(-fromAngle);
+    jumpAnimation.duration       = 0.25;
     jumpAnimation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
 
-    // 将最终设置的角度也取反，并将 z 轴改回 1
-    self.minuteHandLayer.transform = CATransform3DMakeRotation(-(toAngle), 0, 0, 1);
-    [self.minuteHandLayer addAnimation:jumpAnimation forKey:@"minuteHandJump"];
+    if (minute == 0) {
+        // 59->0 wraparound: target -2π instead of 0 so CA interpolates clockwise
+        // by ~6° rather than counterclockwise by ~354°.
+        jumpAnimation.toValue = @(-M_PI * 2.0);
+        self.minuteHandLayer.transform = CATransform3DMakeRotation(-M_PI * 2.0, 0, 0, 1);
+
+        [CATransaction begin];
+        [CATransaction setCompletionBlock:^{
+            // Normalize silently: -2π and 0 are visually identical,
+            // but keeping -2π would accumulate across subsequent wraps.
+            [CATransaction begin];
+            [CATransaction setDisableActions:YES];
+            self.minuteHandLayer.transform = CATransform3DMakeRotation(0, 0, 0, 1);
+            [CATransaction commit];
+        }];
+        [self.minuteHandLayer addAnimation:jumpAnimation forKey:@"minuteHandJump"];
+        [CATransaction commit];
+    } else {
+        jumpAnimation.toValue = @(-toAngle);
+        self.minuteHandLayer.transform = CATransform3DMakeRotation(-toAngle, 0, 0, 1);
+        [self.minuteHandLayer addAnimation:jumpAnimation forKey:@"minuteHandJump"];
+    }
 }
 
 #pragma mark - Right-click Menu
