@@ -8,8 +8,9 @@
 #import "ClockView.h"
 #import "AppState.h"
 #import <QuartzCore/QuartzCore.h>
+#import <CoreLocation/CoreLocation.h>
 
-@interface ClockView ()
+@interface ClockView () <CLLocationManagerDelegate>
 
 // Layer for clock animation
 @property (nonatomic, strong) CALayer *backgroundLayer;
@@ -22,6 +23,17 @@
 @property (nonatomic, strong) CALayer *minuteHandContainerLayer;
 @property (nonatomic, strong) CALayer *secondHandLayer;
 @property (nonatomic, strong) CALayer *secondHandContainerLayer;
+
+// Text layer for location label shown only in wide-window mode
+@property (nonatomic, strong) CATextLayer *locationTextLayer;
+
+// CoreLocation stack for real city name
+@property (nonatomic, strong) CLLocationManager *locationManager;
+@property (nonatomic, strong) CLGeocoder        *geocoder;
+// Resolved city; defaults to "Local" until geocoding succeeds
+@property (nonatomic, copy)   NSString          *cityName;
+// Last computed layout scale, kept so appearance-only rebuilds can reuse it
+@property (nonatomic, assign) CGFloat            layoutScale;
 
 @property (nonatomic, assign) BOOL hasPerformedInitialLayout;
 
@@ -65,9 +77,9 @@
 - (void)setupView {
     // setup layer support
     self.wantsLayer = YES;
-    
+
     [self setupLayers];
-    
+    [self setupLocationManager];
     [self startClock];
 }
 
@@ -117,8 +129,20 @@
     self.secondHandLayer.shadowOpacity = 0.5;
     self.secondHandLayer.shadowOffset = CGSizeMake(0, 3);
 
+    // --- Location text layer: visible only in wide-window mode ---
+    // Content (NSAttributedString) is built by updateLocationTextLayerAppearance.
+    self.locationTextLayer = [CATextLayer layer];
+    self.locationTextLayer.alignmentMode = kCAAlignmentCenter;
+    self.locationTextLayer.wrapped = YES;
+    self.locationTextLayer.truncationMode = kCATruncationEnd;
+    self.locationTextLayer.contentsScale = [[NSScreen mainScreen] backingScaleFactor];
+    self.locationTextLayer.allowsFontSubpixelQuantization = YES;
+    self.locationTextLayer.hidden = YES;
+
     // --- 按正确的视觉顺序将所有图层添加到主图层 ---
     [self.layer addSublayer:self.backgroundLayer];
+    // Location label sits above background but beneath all clock layers
+    [self.layer addSublayer:self.locationTextLayer];
     [self.layer addSublayer:self.clockFaceLayer];
     [self.layer addSublayer:self.indicatorLayer];
     [self.layer addSublayer:self.hourHandLayer];
@@ -153,8 +177,9 @@
     [super layout];
     [self layoutLayers];
 
-    // bounds 每次变化都重新光栅化，确保缩放后图片清晰
+    // Rasterize at current scale and refresh appearance-sensitive colors
     [self updateLayerImages];
+    [self updateLocationTextLayerAppearance];
 
     if (!self.hasPerformedInitialLayout) {
         [self updateClockHands:nil];
@@ -190,13 +215,48 @@
     // --- REDINDICATOR: 原始 66×567, 居中 ---
     self.secondHandLayer.bounds = CGRectMake(0, 0, 66 * scale, 567 * scale);
     self.secondHandLayer.position = center;
+
+    // --- Location text label: three-state layout for landscape / portrait / square ---
+    CGFloat width = NSWidth(self.bounds);
+    CGFloat height = NSHeight(self.bounds);
+    CGFloat clockFaceDiameter = MIN(width, height);
+    CGFloat cityFontSize = MAX(14.0, 32.0 * scale);
+    CGFloat dateFontSize = MAX(10.0, 16.0 * scale);
+    CGFloat textHeight = cityFontSize * 1.2 + dateFontSize * 1.4;
+
+    if (width > height * 1.2) {
+        self.locationTextLayer.hidden = NO;
+
+        // Store scale so appearance-only rebuilds (appearance change, geocoder callback)
+        // can reuse the same font sizes without needing to recompute layout.
+        self.layoutScale = scale;
+
+        CGFloat leftSpaceWidth = (width - clockFaceDiameter) / 2.0;
+        CGFloat yPos = (height - textHeight) / 2.0;
+        self.locationTextLayer.frame = CGRectMake(0, yPos, leftSpaceWidth, textHeight);
+        self.locationTextLayer.contentsScale = self.window.backingScaleFactor;
+        [self updateLocationTextLayerAppearance];
+    } else if (height > width * 1.2) {
+        self.locationTextLayer.hidden = NO;
+        self.layoutScale = scale;
+
+        CGFloat topSpaceHeight = (height - clockFaceDiameter) / 2.0;
+        CGFloat yPos = height - (topSpaceHeight / 2.0) - (textHeight / 2.0);
+
+        self.locationTextLayer.frame = CGRectMake(0, yPos, width, textHeight);
+        self.locationTextLayer.contentsScale = self.window.backingScaleFactor;
+        [self updateLocationTextLayerAppearance];
+    } else {
+        self.locationTextLayer.hidden = YES;
+    }
 }
 
 
 - (void)viewDidChangeEffectiveAppearance {
     [super viewDidChangeEffectiveAppearance];
-    
+
     [self updateLayerImages];
+    [self updateLocationTextLayerAppearance];
 }
 
 
@@ -216,6 +276,146 @@
         self.minuteHandLayer.contents = (__bridge id)cgImageForLayer(@"MINBAR", self.minuteHandLayer);
         self.secondHandLayer.contents = (__bridge id)cgImageForLayer(@"REDINDICATOR", self.secondHandLayer);
     }];
+}
+
+/**
+ * Rebuilds the NSAttributedString content and engraved shadow of locationTextLayer
+ * to match the current effective appearance. Safe to call from any context that
+ * detects an appearance change (layout, viewDidChangeEffectiveAppearance, geocoder).
+ */
+- (void)updateLocationTextLayerAppearance {
+    NSAppearanceName bestMatch = [self.effectiveAppearance
+        bestMatchFromAppearancesWithNames:@[NSAppearanceNameAqua, NSAppearanceNameDarkAqua]];
+    BOOL isDark = [bestMatch isEqualToString:NSAppearanceNameDarkAqua];
+    CGFloat effectiveScale = self.layoutScale > 0.0 ? self.layoutScale : (MIN(NSWidth(self.bounds), NSHeight(self.bounds)) / 800.0);
+
+    [CATransaction begin];
+    [CATransaction setDisableActions:YES];
+
+    [self.effectiveAppearance performAsCurrentDrawingAppearance:^{
+        self.locationTextLayer.string = [self buildLocationAttributedStringWithScale:effectiveScale
+                                                                              isDark:isDark];
+
+        if (isDark) {
+            self.locationTextLayer.shadowColor  = [NSColor blackColor].CGColor;
+            self.locationTextLayer.shadowOffset = CGSizeMake(0, -1);
+            self.locationTextLayer.shadowOpacity = 0.8f;
+            self.locationTextLayer.shadowRadius  = 0.0;
+        } else {
+            self.locationTextLayer.shadowColor  = [NSColor whiteColor].CGColor;
+            self.locationTextLayer.shadowOffset = CGSizeMake(0, -1);
+            self.locationTextLayer.shadowOpacity = 1.0f;
+            self.locationTextLayer.shadowRadius  = 0.0;
+        }
+    }];
+
+    [self.locationTextLayer setNeedsDisplay];
+    [CATransaction commit];
+}
+
+/**
+ * Builds the two-line NSAttributedString: city name (black weight, large) over
+ * date (light weight, small). Colors are chosen per appearance to achieve the
+ * engraved letterpress illusion together with the shadow set in
+ * updateLocationTextLayerAppearance.
+ */
+- (NSAttributedString *)buildLocationAttributedStringWithScale:(CGFloat)scale isDark:(BOOL)isDark {
+    // Font sizes mirror the height calculation in layoutLayers
+    CGFloat cityFontSize = MAX(14.0, floor(32.0 * scale));
+    CGFloat dateFontSize = MAX(9.0,  floor(16.0 * scale));
+
+    NSFont *cityFont = [NSFont systemFontOfSize:cityFontSize weight:NSFontWeightMedium];
+    NSFont *dateFont = [NSFont systemFontOfSize:dateFontSize weight:NSFontWeightRegular];
+
+    // Light mode: deep charcoal city / medium gray date
+    // Dark mode:  near-black city / dim gray date (glyphs must be darker than BG to carve in)
+    NSColor *cityColor = isDark
+        ? [NSColor colorWithWhite:0.9 alpha:1.0]
+        : [NSColor colorWithWhite:0.25 alpha:1.0];
+    NSColor *dateColor = isDark
+        ? [NSColor colorWithWhite:0.65 alpha:1.0]
+        : [NSColor colorWithWhite:0.55 alpha:1.0];
+
+    NSMutableParagraphStyle *centered = [[NSMutableParagraphStyle alloc] init];
+    centered.alignment = NSTextAlignmentCenter;
+
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    formatter.dateFormat = @"EEEE, MMMM d";
+    NSString *dateString = [formatter stringFromDate:[NSDate date]];
+
+    NSString *city = self.cityName.length > 0 ? self.cityName : @"Local";
+
+    NSMutableAttributedString *result = [[NSMutableAttributedString alloc] init];
+
+    // City line (with trailing newline so the date starts on the next line)
+    [result appendAttributedString:[[NSAttributedString alloc]
+        initWithString:[city stringByAppendingString:@"\n"]
+            attributes:@{ NSFontAttributeName: cityFont,
+                          NSForegroundColorAttributeName: cityColor,
+                          NSParagraphStyleAttributeName: centered }]];
+
+    // Date line
+    [result appendAttributedString:[[NSAttributedString alloc]
+        initWithString:dateString
+            attributes:@{ NSFontAttributeName: dateFont,
+                          NSForegroundColorAttributeName: dateColor,
+                          NSParagraphStyleAttributeName: centered }]];
+
+    [result addAttribute:NSParagraphStyleAttributeName
+                   value:centered
+                   range:NSMakeRange(0, result.length)];
+
+    return result;
+}
+
+#pragma mark - Location
+
+/**
+ * Initializes CLLocationManager, requests when-in-use authorization, then
+ * fires a single one-shot location request. The result is reverse-geocoded
+ * to a city name; on success cityName is updated and the label redrawn.
+ */
+- (void)setupLocationManager {
+    self.cityName = @"Local";    // fallback until geocoding succeeds
+    self.layoutScale = 0.0;
+
+    self.geocoder = [[CLGeocoder alloc] init];
+
+    self.locationManager = [[CLLocationManager alloc] init];
+    self.locationManager.delegate = self;
+    self.locationManager.desiredAccuracy = kCLLocationAccuracyKilometer;
+    [self.locationManager requestWhenInUseAuthorization];
+    [self.locationManager requestLocation];
+}
+
+- (void)locationManager:(CLLocationManager *)manager
+     didUpdateLocations:(NSArray<CLLocation *> *)locations {
+    CLLocation *location = locations.lastObject;
+    if (!location) return;
+
+    [self.geocoder reverseGeocodeLocation:location
+                        completionHandler:^(NSArray<CLPlacemark *> *placemarks, NSError *error) {
+        if (error || placemarks.count == 0) {
+            NSLog(@"Geocoder failed: %@", error.localizedDescription);
+            return;
+        }
+        CLPlacemark *placemark = placemarks.firstObject;
+        // Prefer locality (city); fall back to sub-administrative area
+        NSString *city = placemark.locality
+                      ?: placemark.subAdministrativeArea
+                      ?: @"Local";
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self.cityName = city;
+            // Redraw the label with the real city name; frame is already set
+            [self updateLocationTextLayerAppearance];
+        });
+    }];
+}
+
+- (void)locationManager:(CLLocationManager *)manager
+       didFailWithError:(NSError *)error {
+    // Log full error object so Xcode console shows domain, code, and description
+    NSLog(@"Location Error: %@", error);
 }
 
 #pragma mark - Clock logic and animation
@@ -421,4 +621,3 @@
 }
 
 @end
-
