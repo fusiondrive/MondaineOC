@@ -162,6 +162,7 @@
     [self.layer addSublayer:self.hourHandLayer];
     [self.layer addSublayer:self.minuteHandLayer];
     [self.layer addSublayer:self.secondHandLayer];
+
 }
 
 /**
