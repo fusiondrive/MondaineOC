@@ -1,0 +1,23 @@
+{
+  "images" : [
+    {
+      "filename" : "SECONDBAR_GLOSS.svg",
+      "idiom" : "universal",
+      "scale" : "1x"
+    },
+    {
+      "filename" : "SECONDBAR_GLOSS 1.svg",
+      "idiom" : "universal",
+      "scale" : "2x"
+    },
+    {
+      "filename" : "SECONDBAR_GLOSS 2.svg",
+      "idiom" : "universal",
+      "scale" : "3x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
